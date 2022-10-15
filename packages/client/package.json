@@ -1,0 +1,39 @@
+{
+  "name": "@relicprotocol/client",
+  "description": "Client SDK for interacting with Relic Protocol",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "files": [
+    "/dist/*",
+    "/src/*"
+  ],
+  "scripts": {
+    "clean": "rm -r dist *.tsbuildinfo",
+    "prepare": "npm run compile",
+    "compile": "tsc -b"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "@relicprotocol/contracts": "../contracts/",
+    "axios": "^1.1.2",
+    "ethers": "^5.7.1"
+  },
+  "keywords": [
+    "relic",
+    "reliquary",
+    "client",
+    "sdk",
+    "historical",
+    "state",
+    "query"
+  ],
+  "homepage": "https://docs.relicprotocol.com/",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relic-Protocol/relic-sdk"
+  }
+}

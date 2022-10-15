@@ -1,0 +1,31 @@
+{
+  "name": "@relicprotocol/contracts",
+  "description": "Smart Contracts and libraries for interacting with Relic Protocol",
+  "version": "0.0.1",
+  "files": [
+    "**/*.sol",
+    "abi/*.json"
+  ],
+  "scripts": {
+    "prepare": "cd ../../; npm run prepare"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3"
+  },
+  "keywords": [
+    "relic",
+    "reliquary",
+    "sdk",
+    "historical",
+    "state",
+    "query",
+    "contracts",
+    "library"
+  ],
+  "homepage": "https://docs.relicprotocol.com/",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relic-Protocol/relic-sdk"
+  }
+}
