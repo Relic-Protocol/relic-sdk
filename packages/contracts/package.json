@@ -1,13 +1,14 @@
 {
   "name": "@relicprotocol/contracts",
   "description": "Smart Contracts and libraries for interacting with Relic Protocol",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "files": [
     "**/*.sol",
     "abi/*.json"
   ],
   "scripts": {
-    "prepare": "cd ../../; npm run prepare"
+    "prepare": "cd ../../; npm run prepare",
+    "prepack": "cd ../../; npm run prepack"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3"

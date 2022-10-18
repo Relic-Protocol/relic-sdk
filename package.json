@@ -2,19 +2,24 @@
   "name": "relic-sdk",
   "description": "Relic SDK root package",
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepack": "scripts/prepack.sh"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
+    "@nomiclabs/hardhat-ethers": "^2.2.0",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "chai": "^4.3.6",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.3.0",
     "eslint-plugin-promise": "^6.1.0",
+    "ethers": "^5.7.1",
     "hardhat": "^2.10.1",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",

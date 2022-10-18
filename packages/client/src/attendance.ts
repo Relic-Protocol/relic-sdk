@@ -20,7 +20,7 @@ export class AttendanceProver {
     address: string,
     eventId: ethers.BigNumberish,
     code: string
-  ): Promise<ethers.UnsignedTransaction> {
+  ): Promise<ethers.PopulatedTransaction> {
     const proof = await this.api.attendanceProof(address, eventId, code)
     return await this.contract.populateTransction.claim(
       proof.account,

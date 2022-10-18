@@ -21,7 +21,7 @@ export class StorageSlotProver {
     address: string,
     slot: ethers.BigNumberish,
     expected?: ethers.BigNumberish
-  ): Promise<ethers.UnsignedTransaction> {
+  ): Promise<ethers.PopulatedTransaction> {
     const proof = await this.api.storageSlotProof(block, address, slot)
 
     if (typeof expected !== 'undefined') {

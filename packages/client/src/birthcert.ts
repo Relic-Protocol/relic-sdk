@@ -16,7 +16,7 @@ export class BirthCertificateProver {
     this.contract = new ethers.Contract(address, abi, provider)
   }
 
-  async prove(address: string): Promise<ethers.UnsignedTransaction> {
+  async prove(address: string): Promise<ethers.PopulatedTransaction> {
     const proof = await this.api.birthCertificateProof(address)
 
     return await this.contract.populateTransaction.proveBirthCertificate(
