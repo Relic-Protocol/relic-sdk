@@ -4,6 +4,11 @@ pragma solidity >=0.8.0;
 
 import "./Facts.sol";
 
+/**
+ * @title FactSigs
+ * @author Theori, Inc.
+ * @notice Helper functions for computing fact signatures
+ */
 library FactSigs {
     /**
      * @notice Produce the fact signature for a birth certificate fact

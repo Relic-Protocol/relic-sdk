@@ -1,7 +1,7 @@
 {
   "name": "@relicprotocol/client",
   "description": "Client SDK for interacting with Relic Protocol",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist/index.js",
   "files": [
     "/dist/*",
@@ -17,9 +17,11 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@relicprotocol/contracts": "^0.0.2",
-    "axios": "^1.1.2",
-    "ethers": "^5.7.1"
+    "@relicprotocol/contracts": "^0.0.3",
+    "axios": "^1.1.2"
+  },
+  "peerDependencies": {
+    "ethers": "5.x"
   },
   "keywords": [
     "relic",
