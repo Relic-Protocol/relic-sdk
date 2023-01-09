@@ -269,11 +269,7 @@ interface IReliquary {
     function provers(address)
         external
         view
-        returns (
-            uint64 version,
-            FeeInfo memory feeInfo,
-            bool revoked
-        );
+        returns (ProverInfo memory);
 
     /**
      * @notice Remove credits from an account. Requires the CREDITS_ROLE.

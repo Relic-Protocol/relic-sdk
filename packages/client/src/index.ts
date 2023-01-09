@@ -1,9 +1,8 @@
 export * from './api'
 export * from './client'
 export * from './reliquary'
-export * from './attendance'
-export * from './birthcert'
-export * from './storage'
+
+export * from './provers'
 
 import * as utils from './utils'
 export { utils }

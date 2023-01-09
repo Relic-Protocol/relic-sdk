@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { RelicClient } from '../packages/client/src'
+import { RelicClient } from '../../packages/client/src'
 
 const RELIQUARY_ADDRESS = '0x5E4DE6Bb8c6824f29c44Bd3473d44da120387d08'
 const ADDR = '0xf979392E396dc53faB7B3C430dD385e73dD0A4e2'
@@ -34,7 +34,9 @@ describe('BirthCertificateVerifier', function () {
     const prover = await client.birthCertificateProver()
 
     // prove the birth certificate
-    let tx = await impersonatedSigner.sendTransaction(await prover.prove(ADDR))
+    let tx = await impersonatedSigner.sendTransaction(
+      await prover.prove({ account: ADDR })
+    )
     await tx.wait()
 
     // now it succeeds, but the previous block fails

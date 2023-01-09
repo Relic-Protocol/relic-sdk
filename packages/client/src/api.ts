@@ -1,3 +1,9 @@
+import type {
+  AttendanceProof,
+  BirthCertificateProof,
+  StorageSlotProof,
+} from '@relicprotocol/types'
+
 import { ethers } from 'ethers'
 import axios, {
   AxiosError,
@@ -6,39 +12,14 @@ import axios, {
   AxiosResponse,
 } from 'axios'
 
-export type BirthCertificateProof = {
-  account: string
-  accountProof: string
-  header: string
-  blockProof: string
-}
-
-export type AttendanceProof = {
-  account: string
-  eventId: string
-  number: string
-  signatureInner: string
-  signatureOuter: string
-}
-
-export type StorageSlotProof = {
-  account: string
-  accountProof: string
-  slot: string
-  slotValue: string
-  slotProof: string
-  header: string
-  blockProof: string
-}
-
 export class RelicAPI {
-  instance: AxiosInstance
+  private instance: AxiosInstance
 
   constructor(apiUrl: string) {
     this.instance = axios.create({ baseURL: apiUrl })
   }
 
-  _fetch<R>(req: AxiosRequestConfig): Promise<R> {
+  private _fetch<R>(req: AxiosRequestConfig): Promise<R> {
     return new Promise<R>((resolve, reject) =>
       this.instance
         .request(req)
@@ -77,7 +58,7 @@ export class RelicAPI {
   async storageSlotProof(
     block: number,
     address: string,
-    slot: ethers.BigNumberish,
+    slot: ethers.BigNumberish
   ): Promise<StorageSlotProof> {
     return await this._fetch<StorageSlotProof>({
       method: 'get',

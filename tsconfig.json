@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "noEmit": true,
+    "module": "CommonJS",
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "baseUrl": "."
+  },
+  "include": ["test/**/*.test.ts", "hardhat.config.ts"]
+}

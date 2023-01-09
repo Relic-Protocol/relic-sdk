@@ -22,7 +22,7 @@ async function main() {
   // prove an account's birth certificate
   const birthCertificateProver = await relic.birthCertificateProver()
   const account = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' // vitalik.eth
-  const bcTx = await birthCertificateProver.prove(account)
+  const bcTx = await birthCertificateProver.prove({ account })
 
   console.log(await provider.estimateGas(bcTx))
 
@@ -47,7 +47,12 @@ async function main() {
   const expected = await contract.balanceOf(account, { blockTag: blockNum })
 
   // expected is optional parameter
-  const ssTx = await storageSlotProver.prove(blockNum, wethAddr, slot, expected)
+  const ssTx = await storageSlotProver.prove({
+    block: blockNum,
+    account: wethAddr,
+    slot,
+    expected,
+  })
 
   // use the transaction data...
   console.log(await provider.estimateGas(ssTx))

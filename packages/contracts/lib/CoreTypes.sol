@@ -11,11 +11,15 @@ pragma solidity >=0.8.0;
 library CoreTypes {
     struct BlockHeaderData {
         bytes32 ParentHash;
+        address Coinbase;
         bytes32 Root;
         bytes32 TxHash;
         bytes32 ReceiptHash;
         uint256 Number;
+        uint256 GasLimit;
+        uint256 GasUsed;
         uint256 Time;
+        bytes32 MixHash;
         uint256 BaseFee;
     }
 

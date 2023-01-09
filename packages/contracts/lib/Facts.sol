@@ -4,6 +4,12 @@ pragma solidity >=0.8.0;
 
 type FactSignature is bytes32;
 
+struct Fact {
+    address account;
+    FactSignature sig;
+    bytes data;
+}
+
 /**
  * @title Facts
  * @author Theori, Inc.
