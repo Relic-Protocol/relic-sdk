@@ -1,8 +1,8 @@
 import type { ethers } from 'ethers'
-import { ZeroExString } from './utils'
 
 export interface Prover {
-  prove: (...args: any[]) => Promise<ethers.PopulatedTransaction>
+  prove: (params: any) => Promise<ethers.PopulatedTransaction>
+  fee: () => Promise<ethers.BigNumber>
 }
 
 export interface ReceiverContext {

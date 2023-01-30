@@ -2,61 +2,84 @@ import { ethers } from 'ethers'
 import { abi as proverAbi } from '@relicprotocol/contracts/abi/IProver.json'
 import { abi as ephemeralFactsAbi } from '@relicprotocol/contracts/abi/IEphemeralFacts.json'
 
-import { Prover, EphemeralProver } from '@relicprotocol/types'
+import type { RelicClient } from '../client'
+import { Prover, EphemeralProver, RelicAddresses } from '@relicprotocol/types'
 
 export interface ReceiverContext {
   initiator: string
   receiver: string
-  extra: string
+  extra?: string
   gasLimit: ethers.BigNumberish
 }
 
-export class ProverImpl<Params> implements Prover {
-  protected prover: ethers.Contract
+export type ProofData = {
+  proof: string
+  sigData: string
+}
 
-  constructor(provider: ethers.providers.Provider, proverAddress: string) {
-    this.prover = new ethers.Contract(proverAddress, proverAbi, provider)
+export abstract class ProverImpl<Params> implements Prover {
+  readonly client: RelicClient
+  readonly contract: ethers.Contract
+
+  constructor(client: RelicClient, key: keyof RelicAddresses) {
+    this.client = client
+    this.contract = new ethers.Contract(
+      client.addresses[key],
+      proverAbi,
+      client.provider
+    )
   }
 
-  protected async getProof(params: Params): Promise<string> {
-    throw 'getProof() unimplemented'
-  }
+  abstract getProofData(params: Params): Promise<ProofData>
 
   async prove(params: Params): Promise<ethers.PopulatedTransaction> {
-    return await this.prover.populateTransaction.prove(
-      this.getProof(params),
-      true
-    )
+    const { proof } = await this.getProofData(params)
+    return await this.contract.populateTransaction.prove(proof, true, {
+      value: await this.fee(),
+    })
+  }
+
+  fee(): Promise<ethers.BigNumber> {
+    return this.client.reliquary.getFee(this.contract.address)
   }
 }
 
-export class EphemeralProverImpl<Params>
+export abstract class EphemeralProverImpl<Params>
   extends ProverImpl<Params>
   implements EphemeralProver
 {
-  private ephemeralFacts: ethers.Contract
+  readonly ephemeralFacts: ethers.Contract
 
-  constructor(
-    provider: ethers.providers.Provider,
-    proverAddress: string,
-    ephemeralFactsAddress: string
-  ) {
-    super(provider, proverAddress)
+  constructor(client: RelicClient, key: keyof RelicAddresses) {
+    super(client, key)
     this.ephemeralFacts = new ethers.Contract(
-      ephemeralFactsAddress,
+      client.addresses.ephemeralFacts,
       ephemeralFactsAbi,
-      provider
+      client.provider
     )
   }
 
+  /**
+   * Proves a fact ephemerally and deliver it to the receiver
+   * If context.extra is undefined, it will default to the fact signature data
+   * for compatibility with the RelicReceiver SDK contracts
+   */
   async proveEphemeral(
     context: ReceiverContext,
     params: Params
   ): Promise<ethers.PopulatedTransaction> {
+    const { proof, sigData } = await this.getProofData(params)
+
+    // default value for extra = fact signature data
+    if (!context.extra) {
+      context = { ...context, extra: sigData }
+    }
+
     return await this.ephemeralFacts.populateTransaction.proveEphemeral(
       context,
-      this.prover.address,
-      this.getProof(params)
+      this.contract.address,
+      proof,
+      { value: await this.fee() }
     )
   }
 }

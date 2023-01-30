@@ -6,6 +6,10 @@ export interface RelicAddresses {
   attendanceProver: ZeroExString
   birthCertificateProver: ZeroExString
   storageSlotProver: ZeroExString
+  logProver: ZeroExString
+  blockHeaderProver: ZeroExString
+  accountStorageProver: ZeroExString
+  cachedStorageSlotProver: ZeroExString
 }
 
 export interface RelicConfig {

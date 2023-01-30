@@ -1,7 +1,12 @@
+import { API_ERROR_MAP, RelicError, UnknownError } from './errors'
+
 import type {
   AttendanceProof,
-  BirthCertificateProof,
+  AccountProof,
+  BlockProof,
+  LogProof,
   StorageSlotProof,
+  ErrorResult,
 } from '@relicprotocol/types'
 
 import { ethers } from 'ethers'
@@ -12,6 +17,16 @@ import axios, {
   AxiosResponse,
 } from 'axios'
 
+function makeError(
+  response: AxiosResponse<ErrorResult> | undefined
+): RelicError {
+  if (!response) {
+    throw new UnknownError('No response data from API')
+  }
+  const constructor = API_ERROR_MAP[response.data.error]
+  return constructor ? new constructor() : new UnknownError(response.data.error)
+}
+
 export class RelicAPI {
   private instance: AxiosInstance
 
@@ -20,31 +35,44 @@ export class RelicAPI {
   }
 
   private _fetch<R>(req: AxiosRequestConfig): Promise<R> {
-    return new Promise<R>((resolve, reject) =>
-      this.instance
-        .request(req)
-        .then(({ data }: AxiosResponse<R>) => {
-          resolve(data)
-        })
-        .catch((error: AxiosError) => {
-          reject(error)
-        })
-    )
+    return this.instance
+      .request(req)
+      .then(({ data }: AxiosResponse<R>) => data)
+      .catch((error: AxiosError<ErrorResult>) => {
+        throw makeError(error.response)
+      })
   }
 
-  async birthCertificateProof(address: string): Promise<BirthCertificateProof> {
-    return await this._fetch<BirthCertificateProof>({
+  accountProof(
+    block: ethers.providers.BlockTag,
+    address: string
+  ): Promise<AccountProof> {
+    return this._fetch<AccountProof>({
+      method: 'get',
+      url: `/account/${block}/${ethers.utils.getAddress(address)}`,
+    })
+  }
+
+  blockProof(block: ethers.providers.BlockTag): Promise<BlockProof> {
+    return this._fetch<BlockProof>({
+      method: 'get',
+      url: `/block/${block}`,
+    })
+  }
+
+  birthCertificateProof(address: string): Promise<AccountProof> {
+    return this._fetch<AccountProof>({
       method: 'get',
       url: `/birthcert/${ethers.utils.getAddress(address)}`,
     })
   }
 
-  async attendanceProof(
+  attendanceProof(
     address: string,
     eventId: ethers.BigNumberish,
     code: string
   ): Promise<AttendanceProof> {
-    return await this._fetch<AttendanceProof>({
+    return this._fetch<AttendanceProof>({
       method: 'get',
       url: '/attendance',
       params: {
@@ -55,16 +83,23 @@ export class RelicAPI {
     })
   }
 
-  async storageSlotProof(
-    block: number,
+  storageSlotProof(
+    block: ethers.providers.BlockTag,
     address: string,
     slot: ethers.BigNumberish
   ): Promise<StorageSlotProof> {
-    return await this._fetch<StorageSlotProof>({
+    return this._fetch<StorageSlotProof>({
       method: 'get',
       url: `/storage/${block}/${ethers.utils.getAddress(
         address
       )}/${ethers.utils.hexlify(slot)}`,
+    })
+  }
+
+  logProof(block: string, txIdx: number, logIdx: number): Promise<LogProof> {
+    return this._fetch<LogProof>({
+      method: 'get',
+      url: `/log/${block}/${txIdx}/${logIdx}`,
     })
   }
 }

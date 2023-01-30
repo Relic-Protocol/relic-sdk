@@ -1,9 +1,8 @@
-import type { RelicAddresses } from '@relicprotocol/types'
 import { ethers } from 'ethers'
 import { abi } from '@relicprotocol/contracts/abi/IAttendanceProver.json'
 import { Prover } from '@relicprotocol/types'
 
-import { RelicAPI } from '../api'
+import { RelicClient } from '../client'
 
 export interface AttendanceParams {
   account: string
@@ -12,24 +11,20 @@ export interface AttendanceParams {
 }
 
 export class AttendanceProver implements Prover {
-  private api: RelicAPI
-  private contract: ethers.Contract
+  readonly client: RelicClient
+  readonly contract: ethers.Contract
 
-  constructor(
-    api: RelicAPI,
-    provider: ethers.providers.Provider,
-    addresses: RelicAddresses
-  ) {
-    this.api = api
+  constructor(client: RelicClient) {
+    this.client = client
     this.contract = new ethers.Contract(
-      addresses.attendanceProver,
+      client.addresses.attendanceProver,
       abi,
-      provider
+      client.provider
     )
   }
 
   async prove(params: AttendanceParams): Promise<ethers.PopulatedTransaction> {
-    const proof = await this.api.attendanceProof(
+    const proof = await this.client.api.attendanceProof(
       params.account,
       params.eventId,
       params.code
@@ -41,5 +36,9 @@ export class AttendanceProver implements Prover {
       proof.signatureInner,
       proof.signatureOuter
     )
+  }
+
+  fee(): Promise<ethers.BigNumber> {
+    return this.client.reliquary.getFee(this.contract.address)
   }
 }

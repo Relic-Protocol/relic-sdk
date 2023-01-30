@@ -86,6 +86,23 @@ abstract contract RelicReceiver is IRelicReceiver {
     }
 
     /**
+     * @notice Handler for receiving block header facts.
+     * @dev By default, handling block header facts is unimplemented and will revert.
+     *      Subcontracts should override this function if desired.
+     * @param initiator the address which initiated the fact proving
+     * @param blockNum the block number of the log
+     * @param header the block header data
+     */
+    function receiveBlockHeaderFact(
+        address initiator,
+        uint256 blockNum,
+        CoreTypes.BlockHeaderData memory header
+    ) internal virtual {
+        initiator; blockNum; header; // silence warnings
+        revert('Unimplemented: receiveBlockHeaderFact');
+    }
+
+    /**
      * @notice receives an ephemeral fact from Relic
      * @param initiator the account which initiated the fact proving
      * @param fact the proven fact information
@@ -129,6 +146,13 @@ abstract contract RelicReceiver is IRelicReceiver {
                 (CoreTypes.LogData)
             );
             receiveLogFact(initiator, fact.account, blockNum, txIdx, logIdx, log);
+        } else if (nameHash == keccak256('BlockHeader')) {
+            (, uint256 blockNum) = abi.decode(data, (bytes, uint256));
+            CoreTypes.BlockHeaderData memory header = abi.decode(
+                fact.data,
+                (CoreTypes.BlockHeaderData)
+            );
+            receiveBlockHeaderFact(initiator, blockNum, header);
         } else {
             revert("unsupported fact type");
         }

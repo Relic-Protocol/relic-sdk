@@ -11,19 +11,36 @@ export interface AttendanceProof extends Proof {
   signatureOuter: ZeroExString
 }
 
-export interface BirthCertificateProof extends Proof {
-  account: ZeroExString
-  accountProof: ZeroExString
+export interface BlockProof extends Proof {
+  blockNum: number
   header: ZeroExString
   blockProof: ZeroExString
 }
 
-export interface StorageSlotProof extends Proof {
+export interface BaseAccountProof extends BlockProof {
   account: ZeroExString
   accountProof: ZeroExString
+}
+
+export interface AccountProof extends BaseAccountProof {
+  balance: BigNumberish
+  nonce: number
+  codeHash: ZeroExString
+  storageHash: ZeroExString
+}
+
+export interface StorageSlotProof extends BaseAccountProof {
   slot: BigNumberish
   slotValue: BigNumberish
   slotProof: ZeroExString
-  header: ZeroExString
-  blockProof: ZeroExString
+}
+
+export interface LogProof extends BlockProof {
+  txIdx: number
+  logIdx: number
+  receiptProof: ZeroExString
+}
+
+export interface ErrorResult {
+  error: string
 }

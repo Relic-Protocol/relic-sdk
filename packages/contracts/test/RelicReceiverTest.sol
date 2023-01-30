@@ -25,6 +25,11 @@ contract RelicReceiverTest is RelicReceiver {
         uint256 blockNum,
         uint256 timestamp
     );
+    event BlockHeaderFact(
+        address initiator,
+        uint256 blockNum,
+        CoreTypes.BlockHeaderData header
+    );
 
     function receiveStorageSlotFact(
         address initiator,
@@ -43,5 +48,13 @@ contract RelicReceiverTest is RelicReceiver {
         uint256 timestamp
     ) internal override {
         emit BirthCertificateFact(initiator, account, blockNum, timestamp);
+    }
+
+    function receiveBlockHeaderFact(
+        address initiator,
+        uint256 blockNum,
+        CoreTypes.BlockHeaderData memory header
+    ) internal override {
+        emit BlockHeaderFact(initiator, blockNum, header);
     }
 }

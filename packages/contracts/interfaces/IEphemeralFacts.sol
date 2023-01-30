@@ -5,19 +5,12 @@ pragma solidity >=0.8.0;
 import "./IRelicReceiver.sol";
 
 interface IEphemeralFacts {
-    event FactRequest(
-        address account,
-        bytes sigData,
-        IRelicReceiver receiver,
-        bytes extra,
-        uint256 bounty
-    );
-
     struct ReceiverContext {
         address initiator;
         IRelicReceiver receiver;
         bytes extra;
         uint256 gasLimit;
+        bool requireSuccess;
     }
 
     struct FactDescription {
@@ -25,8 +18,13 @@ interface IEphemeralFacts {
         bytes sigData;
     }
 
-    event ReceiveSuccess(IRelicReceiver receiver, Fact fact, bytes data);
-    event ReceiveFailure(IRelicReceiver receiver, Fact fact, bytes data);
+    event FactRequested(FactDescription desc, ReceiverContext context, uint256 bounty);
+
+    event ReceiveSuccess(IRelicReceiver receiver, bytes32 requestId);
+
+    event ReceiveFailure(IRelicReceiver receiver, bytes32 requestId);
+
+    event BountyPaid(uint256 bounty, bytes32 requestId, address relayer);
 
     /**
      * @notice proves a fact ephemerally and provides it to the receiver

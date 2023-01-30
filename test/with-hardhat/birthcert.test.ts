@@ -30,12 +30,11 @@ describe('BirthCertificateVerifier', function () {
       'account has no proven birth certificate'
     )
 
-    const client = await RelicClient.fromProvider(provider)
-    const prover = await client.birthCertificateProver()
+    const relic = await RelicClient.fromProvider(provider)
 
     // prove the birth certificate
     let tx = await impersonatedSigner.sendTransaction(
-      await prover.prove({ account: ADDR })
+      await relic.birthCertificateProver.prove({ account: ADDR })
     )
     await tx.wait()
 

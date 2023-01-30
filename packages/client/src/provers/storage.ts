@@ -1,44 +1,34 @@
 import { ethers } from 'ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 
-import { RelicAddresses } from '@relicprotocol/types'
-import { RelicAPI } from '../api'
-import { EphemeralProverImpl } from './prover'
+import { EphemeralProverImpl, ProofData } from './prover'
+import { RelicClient } from '../client'
+
+import { utils } from '../'
 
 export interface StorageSlotParams {
-  block: number
+  block: ethers.providers.BlockTag
   account: string
   slot: ethers.BigNumberish
   expected?: ethers.BigNumberish
 }
 
 export class StorageSlotProver extends EphemeralProverImpl<StorageSlotParams> {
-  private api: RelicAPI
-
-  constructor(
-    api: RelicAPI,
-    provider: ethers.providers.Provider,
-    addresses: RelicAddresses
-  ) {
-    super(provider, addresses.storageSlotProver, addresses.ephemeralFacts)
-    this.api = api
+  constructor(client: RelicClient) {
+    super(client, 'storageSlotProver')
   }
 
-  protected async getProof(params: StorageSlotParams): Promise<string> {
-    const proof = await this.api.storageSlotProof(
+  override async getProofData(params: StorageSlotParams): Promise<ProofData> {
+    const proof = await this.client.api.storageSlotProof(
       params.block,
       params.account,
       params.slot
     )
 
     if (typeof params.expected !== 'undefined') {
-      const v0 = ethers.BigNumber.from(proof.slotValue)
-      const v1 = ethers.BigNumber.from(params.expected)
-      if (!v0.eq(v1)) {
-        throw `slot value didn't match expected: ${proof.slotValue} vs ${params.expected}`
-      }
+      utils.assertSlotValue(proof.slotValue, params.expected)
     }
-    return defaultAbiCoder.encode(
+    const proofData = defaultAbiCoder.encode(
       ['address', 'bytes', 'bytes32', 'bytes', 'bytes', 'bytes'],
       [
         proof.account,
@@ -49,5 +39,10 @@ export class StorageSlotProver extends EphemeralProverImpl<StorageSlotParams> {
         proof.blockProof,
       ]
     )
+
+    return {
+      proof: proofData,
+      sigData: utils.storageSlotSigData(proof.slot, proof.blockNum),
+    }
   }
 }
