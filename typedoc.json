@@ -1,0 +1,7 @@
+{
+  "name": "Relic SDK",
+  "out": "docs/ts-sdk",
+  "theme": "default",
+  "entryPoints": ["./packages/client", "./packages/types"],
+  "entryPointStrategy": "packages"
+}

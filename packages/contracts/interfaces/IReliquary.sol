@@ -2,6 +2,7 @@
 
 pragma solidity >=0.8.0;
 
+import "@openzeppelin/contracts/access/IAccessControl.sol";
 import "../lib/Facts.sol";
 
 /**
@@ -11,7 +12,7 @@ import "../lib/Facts.sol";
  *         must be added to the Reliquary. Queries about Relics and Artifacts should
  *         be made to the Reliquary.
  */
-interface IReliquary {
+interface IReliquary is IAccessControl {
     /**
      * @notice Issued when a new prover is accepted into the Reliquary
      * @param prover the address of the prover contract

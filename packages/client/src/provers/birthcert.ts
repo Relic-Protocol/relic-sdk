@@ -1,4 +1,4 @@
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { utils as ethersUtils } from 'ethers'
 
 import { RelicClient } from '../client'
 import { EphemeralProverImpl, ProofData } from './prover'
@@ -19,7 +19,7 @@ export class BirthCertificateProver extends EphemeralProverImpl<BirthCertificate
   ): Promise<ProofData> {
     const proof = await this.client.api.birthCertificateProof(params.account)
 
-    const proofData = defaultAbiCoder.encode(
+    const proofData = ethersUtils.defaultAbiCoder.encode(
       ['address', 'bytes', 'bytes', 'bytes'],
       [proof.account, proof.accountProof, proof.header, proof.blockProof]
     )

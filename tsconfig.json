@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "strict": false,
-    "noEmit": true,
-    "module": "CommonJS",
-    "target": "ESNext",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
+    "incremental": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "strict": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
     "baseUrl": "."
   },
   "include": ["test/**/*.test.ts", "hardhat.config.ts"]
