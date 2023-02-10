@@ -54,6 +54,22 @@ async function main() {
   // use the transaction data...
   console.log(await provider.estimateGas(ssTx))
 
+  // You can also prove multiple storage slots in one call to save gas
+  const ZERO_ADDR = '0x' + '0'.repeat(40)
+  const slot2 = utils.mapElemSlot(3, ZERO_ADDR) // calculate balanceOf(0x000..00) slot
+  const expected2 = await contract.balanceOf(ZERO_ADDR, { blockTag: blockNum })
+
+  // prove two storage slots from the same account simultaneously
+  const mssTx = await relic.multiStorageSlotProver.prove({
+    block: blockNum,
+    account: wethAddr,
+    slots: [slot, slot2],
+    expected: [expected, expected2],
+  })
+
+  // use the transaction data...
+  console.log(await provider.estimateGas(mssTx))
+
   // prove the storage root an account in a particular block,
   // potentially making slot proofs in that block much cheaper
   const asTx = await relic.accountStorageProver.prove({

@@ -9,11 +9,7 @@ pragma solidity >=0.8.0;
  *         duplicated because helper functions are oddly expensive.
  */
 library RLP {
-    function parseUint(bytes calldata buf)
-        internal
-        pure
-        returns (uint256 result, uint256 size)
-    {
+    function parseUint(bytes calldata buf) internal pure returns (uint256 result, uint256 size) {
         assembly {
             // check that we have at least one byte of input
             if iszero(buf.length) {
@@ -57,7 +53,7 @@ library RLP {
         }
     }
 
-    function skip(bytes calldata buf) internal pure returns (uint256 size) {
+    function nextSize(bytes calldata buf) internal pure returns (uint256 size) {
         assembly {
             if iszero(buf.length) {
                 revert(0, 0)
@@ -91,10 +87,7 @@ library RLP {
                         if lt(buf.length, lengthSize) {
                             revert(0, 0)
                         }
-                        size := shr(
-                            mul(8, sub(32, lengthSize)),
-                            shl(8, first32)
-                        )
+                        size := shr(mul(8, sub(32, lengthSize)), shl(8, first32))
                         size := add(size, add(1, lengthSize))
                     }
                     case false {
@@ -114,16 +107,22 @@ library RLP {
                             if lt(buf.length, lengthSize) {
                                 revert(0, 0)
                             }
-                            size := shr(
-                                mul(8, sub(32, lengthSize)),
-                                shl(8, first32)
-                            )
+                            size := shr(mul(8, sub(32, lengthSize)), shl(8, first32))
                             size := add(size, add(1, lengthSize))
                         }
                     }
                 }
             }
         }
+    }
+
+    function skip(bytes calldata buf) internal pure returns (bytes calldata) {
+        uint256 size = RLP.nextSize(buf);
+        assembly {
+            buf.offset := add(buf.offset, size)
+            buf.length := sub(buf.length, size)
+        }
+        return buf;
     }
 
     function parseList(bytes calldata buf)
@@ -217,10 +216,13 @@ library RLP {
                     offset := add(lengthSize, 1)
                 }
             }
-        }
-        unchecked {
-            result = buf[offset:offset + size];
-            rest = buf[offset + size:];
+
+            result.offset := add(buf.offset, offset)
+            result.length := size
+
+            let end := add(offset, size)
+            rest.offset := add(buf.offset, end)
+            rest.length := sub(buf.length, end)
         }
     }
 
@@ -244,10 +246,7 @@ library RLP {
             return result;
         }
 
-        if (
-            value >
-            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-        ) {
+        if (value > 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {
             // length 33, prefix 0xa0 followed by value
             assembly {
                 mstore(add(result, 1), 0x21a0)
@@ -256,10 +255,7 @@ library RLP {
             return result;
         }
 
-        if (
-            value >
-            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-        ) {
+        if (value > 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {
             // length 32, prefix 0x9f followed by value
             assembly {
                 mstore(add(result, 1), 0x209f)

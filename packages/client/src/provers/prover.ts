@@ -1,5 +1,6 @@
 import { ethers } from 'ethers'
 import { abi as proverAbi } from '@relicprotocol/contracts/abi/IProver.json'
+import { abi as batchProverAbi } from '@relicprotocol/contracts/abi/IBatchProver.json'
 import { abi as ephemeralFactsAbi } from '@relicprotocol/contracts/abi/IEphemeralFacts.json'
 
 import type { RelicClient } from '../client'
@@ -15,6 +16,11 @@ export interface ReceiverContext {
 export type ProofData = {
   proof: string
   sigData: string
+}
+
+export type BatchProofData = {
+  proof: string
+  sigDatas: Array<string>
 }
 
 export abstract class ProverImpl<Params> implements Prover {
@@ -81,5 +87,32 @@ export abstract class EphemeralProverImpl<Params>
       proof,
       { value: await this.fee() }
     )
+  }
+}
+
+export abstract class BatchProverImpl<Params> implements Prover {
+  readonly client: RelicClient
+  readonly contract: ethers.Contract
+
+  constructor(client: RelicClient, key: keyof RelicAddresses) {
+    this.client = client
+    this.contract = new ethers.Contract(
+      client.addresses[key],
+      batchProverAbi,
+      client.provider
+    )
+  }
+
+  abstract getProofData(params: Params): Promise<BatchProofData>
+
+  async prove(params: Params): Promise<ethers.PopulatedTransaction> {
+    const { proof } = await this.getProofData(params)
+    return await this.contract.populateTransaction.proveBatch(proof, true, {
+      value: await this.fee(),
+    })
+  }
+
+  fee(): Promise<ethers.BigNumber> {
+    return this.client.reliquary.getFee(this.contract.address)
   }
 }

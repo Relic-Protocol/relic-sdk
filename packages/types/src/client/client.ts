@@ -10,6 +10,7 @@ export interface RelicAddresses {
   blockHeaderProver: ZeroExString
   accountStorageProver: ZeroExString
   cachedStorageSlotProver: ZeroExString
+  multiStorageSlotProver: ZeroExString
 }
 
 export interface RelicConfig {

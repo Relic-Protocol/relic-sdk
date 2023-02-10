@@ -17,6 +17,8 @@ import axios, {
   AxiosResponse,
 } from 'axios'
 
+import axiosRetry from 'axios-retry'
+
 function makeError(
   response: AxiosResponse<ErrorResult> | undefined
 ): RelicError {
@@ -32,6 +34,13 @@ export class RelicAPI {
 
   constructor(apiUrl: string) {
     this.instance = axios.create({ baseURL: apiUrl })
+
+    // exponential backoff when rate limited
+    axiosRetry(this.instance, {
+      retries: 10,
+      retryDelay: axiosRetry.exponentialDelay,
+      retryCondition: (error) => error.response?.status == 429,
+    })
   }
 
   private _fetch<R>(req: AxiosRequestConfig): Promise<R> {

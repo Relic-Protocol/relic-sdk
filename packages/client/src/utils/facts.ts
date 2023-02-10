@@ -1,6 +1,11 @@
 import { BigNumberish, utils } from 'ethers'
+import { UnknownError } from '../errors'
 
 const abiCoder = utils.defaultAbiCoder
+
+export enum FeeClass {
+  NoFee = 0,
+}
 
 export function birthCertificateSigData() {
   return abiCoder.encode(['string'], ['BirthCertificate'])
@@ -39,4 +44,14 @@ export function eventSigData(eventID: BigNumberish) {
     ['string', 'string', 'uint64'],
     ['EventAttendance', 'EventID', eventID]
   )
+}
+
+export function toFactSignature(feeClass: FeeClass, sigData: utils.BytesLike) {
+  if (0 < feeClass || feeClass > 255) {
+    throw new UnknownError("invalid feeClass parameter");
+  }
+  let sigArray = utils.arrayify(utils.keccak256(sigData));
+  sigArray.copyWithin(0, 1); // remove highest byte
+  sigArray[31] = feeClass;
+  return utils.hexlify(sigArray);
 }

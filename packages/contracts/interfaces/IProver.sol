@@ -2,7 +2,7 @@
 
 import "../lib/Facts.sol";
 
-pragma solidity >=0.8.12;
+pragma solidity >=0.8.0;
 
 /**
  * @title IProver

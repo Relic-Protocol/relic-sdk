@@ -10,6 +10,7 @@ import {
   BirthCertificateProver,
   StorageSlotProver,
   CachedStorageSlotProver,
+  MultiStorageSlotProver,
 } from './provers'
 import { Reliquary } from './reliquary'
 
@@ -29,6 +30,7 @@ const defaultConfig: Record<number, RelicConfig> = {
       blockHeaderProver: '0x9f9A1eb0CF9340538297c853915DCc06Eb6D72c4',
       accountStorageProver: '0xa0334AD349c1D805BF6c9e42125845B7D4F63aDe',
       cachedStorageSlotProver: '0x2e1A0F428624D85c2c86be18ccf57981b3e9b54D',
+      multiStorageSlotProver: '0x2758db4b9CeB4a2b1762164D0bBf7024009F6ee4',
     },
   },
 }
@@ -46,6 +48,7 @@ export class RelicClient {
   readonly blockHeaderProver: BlockHeaderProver
   readonly accountStorageProver: AccountStorageProver
   readonly cachedStorageSlotProver: CachedStorageSlotProver
+  readonly multiStorageSlotProver: MultiStorageSlotProver
 
   constructor(provider: ethers.providers.Provider, config: RelicConfig) {
     this.provider = provider
@@ -60,6 +63,7 @@ export class RelicClient {
     this.blockHeaderProver = new BlockHeaderProver(this)
     this.accountStorageProver = new AccountStorageProver(this)
     this.cachedStorageSlotProver = new CachedStorageSlotProver(this)
+    this.multiStorageSlotProver = new MultiStorageSlotProver(this)
   }
 
   static async fromProvider(

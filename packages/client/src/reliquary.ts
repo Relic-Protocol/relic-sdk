@@ -1,10 +1,16 @@
-import { ethers } from 'ethers'
+import { BytesLike, ethers } from 'ethers'
 import { abi } from '@relicprotocol/contracts/abi/IReliquary.json'
 import { RelicClient } from './client'
 import { RelicError } from './errors'
 
 const FeeNoFeeFlag = 1
 const FeeNativeFlag = 2
+
+export type FactData = {
+  exists: boolean
+  version: number
+  data: BytesLike
+}
 
 export class Reliquary {
   private contract: ethers.Contract
@@ -29,5 +35,19 @@ export class Reliquary {
       )
     }
     throw new RelicError('prover does not support native fees')
+  }
+
+  async getFact(address: string, factSig: BytesLike): Promise<FactData> {
+    const [exists, version, data] = await this.contract.callStatic.debugVerifyFact(
+      address,
+      factSig,
+      { from: '0x0000000000000000000000000000000000000000' },
+    );
+
+    return {
+      exists,
+      version,
+      data,
+    };
   }
 }

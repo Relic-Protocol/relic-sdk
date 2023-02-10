@@ -18,7 +18,7 @@ export class LogProver extends EphemeralProverImpl<Params> {
     const receipt = await this.client.provider.getTransactionReceipt(
       log.transactionHash
     )
-    const logIdx = receipt.logs[0].logIndex - log.logIndex
+    const logIdx = log.logIndex - receipt.logs[0].logIndex
 
     const proof = await this.client.api.logProof(
       log.blockHash,
