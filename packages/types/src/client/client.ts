@@ -11,6 +11,7 @@ export interface RelicAddresses {
   accountStorageProver: ZeroExString
   cachedStorageSlotProver: ZeroExString
   multiStorageSlotProver: ZeroExString
+  cachedMultiStorageSlotProver: ZeroExString
 }
 
 export interface RelicConfig {

@@ -29,7 +29,7 @@ export class AttendanceProver implements Prover {
       params.eventId,
       params.code
     )
-    return await this.contract.populateTransction.claim(
+    return await this.contract.populateTransaction.claim(
       proof.account,
       proof.eventId,
       proof.number,

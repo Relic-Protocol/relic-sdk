@@ -7,6 +7,7 @@ import type {
   LogProof,
   StorageSlotProof,
   ErrorResult,
+  RelicAddresses,
 } from '@relicprotocol/types'
 
 import { ethers } from 'ethers'
@@ -109,6 +110,13 @@ export class RelicAPI {
     return this._fetch<LogProof>({
       method: 'get',
       url: `/log/${block}/${txIdx}/${logIdx}`,
+    })
+  }
+
+  addresses(): Promise<RelicAddresses> {
+    return this._fetch<RelicAddresses>({
+      method: 'get',
+      url: `/addresses`,
     })
   }
 }

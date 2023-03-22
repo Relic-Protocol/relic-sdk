@@ -7,7 +7,6 @@
   </a>
 </p>
 
-
 ## Getting Started
 
-Visit [https://docs.relicprotocol.com/developers/client/](https://docs.relicprotocol.com/developers/client/) to get started with Relic Protocol SDK.
+Visit [https://docs.relicprotocol.com/sdk/client-sdk/](https://docs.relicprotocol.com/sdk/client-sdk/) to get started with Relic Protocol SDK.
