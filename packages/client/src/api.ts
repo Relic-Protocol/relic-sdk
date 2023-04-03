@@ -113,10 +113,10 @@ export class RelicAPI {
     })
   }
 
-  addresses(): Promise<RelicAddresses> {
+  addresses(chainId: number): Promise<RelicAddresses> {
     return this._fetch<RelicAddresses>({
       method: 'get',
-      url: `/addresses`,
+      url: `/addresses/${chainId}`,
     })
   }
 }

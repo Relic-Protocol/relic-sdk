@@ -12,16 +12,16 @@ const plugins = [
   nodeResolve({ preferBuiltins: false, browser: true }),
   commonjs(),
   esbuild({
-    minify: true,
     tsconfig: './tsconfig.json',
   }),
 ]
 
-export const createConfig = (name, external) => {
+export const createConfig = (name, external, externalUMD) => {
   return [
     {
       input,
       plugins,
+      external: externalUMD,
       output: {
         file: './dist/index.umd.js',
         format: 'umd',

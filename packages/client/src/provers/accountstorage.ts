@@ -1,5 +1,4 @@
-import { ethers } from 'ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { ethers, utils as ethersUtils } from 'ethers'
 
 import { RelicClient } from '../client'
 import { EphemeralProverImpl, ProofData } from './prover'
@@ -24,7 +23,7 @@ export class AccountStorageProver extends EphemeralProverImpl<AccountStoragePara
       params.account
     )
 
-    const proofData = defaultAbiCoder.encode(
+    const proofData = ethersUtils.defaultAbiCoder.encode(
       ['address', 'bytes', 'bytes', 'bytes'],
       [proof.account, proof.accountProof, proof.header, proof.blockProof]
     )

@@ -1,5 +1,4 @@
-import { ethers } from 'ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { ethers, utils as ethersUtils } from 'ethers'
 
 import { RelicClient } from '../client'
 import { EphemeralProverImpl, ProofData } from './prover'
@@ -18,7 +17,7 @@ export class BlockHeaderProver extends EphemeralProverImpl<BlockHeaderParams> {
   override async getProofData(params: BlockHeaderParams): Promise<ProofData> {
     const proof = await this.client.api.blockProof(params.block)
 
-    const proofData = defaultAbiCoder.encode(
+    const proofData = ethersUtils.defaultAbiCoder.encode(
       ['bytes', 'bytes'],
       [proof.header, proof.blockProof]
     )

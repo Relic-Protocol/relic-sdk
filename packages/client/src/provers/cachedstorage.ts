@@ -1,5 +1,4 @@
-import { ethers } from 'ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { ethers, utils as ethersUtils } from 'ethers'
 
 import { EphemeralProverImpl, ProofData } from './prover'
 import { RelicClient } from '../client'
@@ -28,7 +27,7 @@ export class CachedStorageSlotProver extends EphemeralProverImpl<StorageSlotPara
       utils.assertSlotValue(ssProof.slotValue, params.expected)
     }
 
-    const proofData = defaultAbiCoder.encode(
+    const proofData = ethersUtils.defaultAbiCoder.encode(
       ['address', 'uint256', 'bytes32', 'bytes32', 'bytes'],
       [
         ssProof.account,

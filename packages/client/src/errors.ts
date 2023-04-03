@@ -19,6 +19,14 @@ export class UnsupportedNetwork extends RelicError {
   }
 }
 
+export class InvalidDataProvider extends RelicError {
+  constructor(executionChainId: number, dataChainId: number) {
+    super(
+      `network ${executionChainId} requires a dataProvider for network ${dataChainId}`
+    )
+  }
+}
+
 export class SlotValueMismatch extends RelicError {
   constructor(value: BigNumber, expected: BigNumber) {
     super(`slot value didn't match expected: ${value} vs ${expected}`)

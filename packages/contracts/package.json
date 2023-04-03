@@ -1,7 +1,7 @@
 {
     "name": "@relicprotocol/contracts",
     "description": "Smart Contracts and libraries for interacting with Relic Protocol",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "files": [
         "**/*.sol",
         "abi/*.json"
