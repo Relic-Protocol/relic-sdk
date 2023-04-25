@@ -41,6 +41,11 @@ export interface LogProof extends BlockProof {
   receiptProof: ZeroExString
 }
 
+export interface WithdrawalProof extends BlockProof {
+  idx: number
+  withdrawalProof: ZeroExString
+}
+
 export interface ErrorResult {
   error: string
 }

@@ -39,6 +39,13 @@ export function logSigData(blockNum: number, txIdx: number, logIdx: number) {
   )
 }
 
+export function withdrawalSigData(blockNum: number, idx: number) {
+  return abiCoder.encode(
+    ['string', 'uint256', 'uint256'],
+    ['Withdrawal', blockNum, idx]
+  )
+}
+
 export function eventSigData(eventID: BigNumberish) {
   return abiCoder.encode(
     ['string', 'string', 'uint64'],
@@ -48,10 +55,10 @@ export function eventSigData(eventID: BigNumberish) {
 
 export function toFactSignature(feeClass: FeeClass, sigData: utils.BytesLike) {
   if (0 < feeClass || feeClass > 255) {
-    throw new UnknownError("invalid feeClass parameter");
+    throw new UnknownError('invalid feeClass parameter')
   }
-  let sigArray = utils.arrayify(utils.keccak256(sigData));
-  sigArray.copyWithin(0, 1); // remove highest byte
-  sigArray[31] = feeClass;
-  return utils.hexlify(sigArray);
+  let sigArray = utils.arrayify(utils.keccak256(sigData))
+  sigArray.copyWithin(0, 1) // remove highest byte
+  sigArray[31] = feeClass
+  return utils.hexlify(sigArray)
 }

@@ -12,6 +12,7 @@ import {
   CachedStorageSlotProver,
   MultiStorageSlotProver,
   CachedMultiStorageSlotProver,
+  WithdrawalProver,
 } from './provers'
 import { Reliquary } from './reliquary'
 
@@ -61,6 +62,7 @@ export class RelicClient {
   readonly cachedStorageSlotProver: CachedStorageSlotProver
   readonly multiStorageSlotProver: MultiStorageSlotProver
   readonly cachedMultiStorageSlotProver: CachedMultiStorageSlotProver
+  readonly withdrawalProver: WithdrawalProver
 
   constructor(
     provider: ethers.providers.Provider,
@@ -82,6 +84,7 @@ export class RelicClient {
     this.cachedStorageSlotProver = new CachedStorageSlotProver(this)
     this.multiStorageSlotProver = new MultiStorageSlotProver(this)
     this.cachedMultiStorageSlotProver = new CachedMultiStorageSlotProver(this)
+    this.withdrawalProver = new WithdrawalProver(this)
   }
 
   static async fromProviders(

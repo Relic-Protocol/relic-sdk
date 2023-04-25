@@ -6,6 +6,7 @@ import type {
   BlockProof,
   LogProof,
   StorageSlotProof,
+  WithdrawalProof,
   ErrorResult,
   RelicAddresses,
 } from '@relicprotocol/types'
@@ -106,10 +107,24 @@ export class RelicAPI {
     })
   }
 
-  logProof(block: string, txIdx: number, logIdx: number): Promise<LogProof> {
+  logProof(
+    block: ethers.providers.BlockTag,
+    txIdx: number,
+    logIdx: number
+  ): Promise<LogProof> {
     return this._fetch<LogProof>({
       method: 'get',
       url: `/log/${block}/${txIdx}/${logIdx}`,
+    })
+  }
+
+  withdrawalProof(
+    block: ethers.providers.BlockTag,
+    idx: number
+  ): Promise<WithdrawalProof> {
+    return this._fetch<WithdrawalProof>({
+      method: 'get',
+      url: `/withdrawal/${block}/${idx}`,
     })
   }
 
