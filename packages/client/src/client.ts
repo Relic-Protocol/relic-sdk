@@ -4,14 +4,16 @@ import { ethers } from 'ethers'
 import { RelicAPI } from './api'
 import { InvalidDataProvider, UnsupportedNetwork } from './errors'
 import {
+  AccountInfoProver,
   AccountStorageProver,
   AttendanceProver,
-  BlockHeaderProver,
   BirthCertificateProver,
-  StorageSlotProver,
+  BlockHeaderProver,
+  CachedMultiStorageSlotProver,
   CachedStorageSlotProver,
   MultiStorageSlotProver,
-  CachedMultiStorageSlotProver,
+  StorageSlotProver,
+  TransactionProver,
   WithdrawalProver,
 } from './provers'
 import { Reliquary } from './reliquary'
@@ -52,18 +54,6 @@ export class RelicClient {
   readonly api: RelicAPI
   readonly addresses: RelicAddresses
 
-  readonly reliquary: Reliquary
-  readonly attendanceProver: AttendanceProver
-  readonly birthCertificateProver: BirthCertificateProver
-  readonly storageSlotProver: StorageSlotProver
-  readonly logProver: LogProver
-  readonly blockHeaderProver: BlockHeaderProver
-  readonly accountStorageProver: AccountStorageProver
-  readonly cachedStorageSlotProver: CachedStorageSlotProver
-  readonly multiStorageSlotProver: MultiStorageSlotProver
-  readonly cachedMultiStorageSlotProver: CachedMultiStorageSlotProver
-  readonly withdrawalProver: WithdrawalProver
-
   constructor(
     provider: ethers.providers.Provider,
     config: RelicConfig,
@@ -73,18 +63,6 @@ export class RelicClient {
     this.dataProvider = dataProvider
     this.api = new RelicAPI(config.apiUrl)
     this.addresses = config.addresses
-
-    this.reliquary = new Reliquary(this)
-    this.attendanceProver = new AttendanceProver(this)
-    this.birthCertificateProver = new BirthCertificateProver(this)
-    this.storageSlotProver = new StorageSlotProver(this)
-    this.logProver = new LogProver(this)
-    this.blockHeaderProver = new BlockHeaderProver(this)
-    this.accountStorageProver = new AccountStorageProver(this)
-    this.cachedStorageSlotProver = new CachedStorageSlotProver(this)
-    this.multiStorageSlotProver = new MultiStorageSlotProver(this)
-    this.cachedMultiStorageSlotProver = new CachedMultiStorageSlotProver(this)
-    this.withdrawalProver = new WithdrawalProver(this)
   }
 
   static async fromProviders(
@@ -117,5 +95,57 @@ export class RelicClient {
     configOverride?: Partial<RelicConfig>
   ) {
     return this.fromProviders(provider, provider, configOverride)
+  }
+
+  get reliquary(): Reliquary {
+    return new Reliquary(this)
+  }
+
+  get accountInfoProver(): AccountInfoProver {
+      return new AccountInfoProver(this)
+  }
+
+  get accountStorageProver(): AccountStorageProver {
+    return new AccountStorageProver(this)
+  }
+
+  get attendanceProver(): AttendanceProver {
+    return new AttendanceProver(this)
+  }
+
+  get birthCertificateProver(): BirthCertificateProver {
+    return new BirthCertificateProver(this)
+  }
+
+  get blockHeaderProver(): BlockHeaderProver {
+    return new BlockHeaderProver(this)
+  }
+
+  get cachedMultiStorageSlotProver(): CachedMultiStorageSlotProver {
+    return new CachedMultiStorageSlotProver(this)
+  }
+
+  get cachedStorageSlotProver(): CachedStorageSlotProver {
+    return new CachedStorageSlotProver(this)
+  }
+
+  get logProver(): LogProver {
+    return new LogProver(this)
+  }
+
+  get multiStorageSlotProver(): MultiStorageSlotProver {
+    return new MultiStorageSlotProver(this)
+  }
+
+  get storageSlotProver(): StorageSlotProver {
+    return new StorageSlotProver(this)
+  }
+
+  get transactionProver(): TransactionProver {
+      return new TransactionProver(this)
+  }
+
+  get withdrawalProver(): WithdrawalProver {
+    return new WithdrawalProver(this)
   }
 }

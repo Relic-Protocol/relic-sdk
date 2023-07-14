@@ -9,7 +9,7 @@ The client SDK is designed to simplify fetching proofs from the Relic Prover and
 Initializing `RelicClient` requires passing an [`ethers` Provider](https://docs.ethers.io/v5/api/providers/). Providers can be created with an RPC url or by [connecting to Metamask](https://docs.ethers.io/v5/getting-started/#getting-started--connecting) or another wallet extension.
 
 ```typescript
-import { AccountNotFound, RelicClient, utils } from '@relicprotocol/client'
+import { AccountNotFound, RelicClient, utils, InfoType } from '@relicprotocol/client'
 import { ethers } from 'ethers'
 
 async function main() {
@@ -28,6 +28,14 @@ async function main() {
   // to send the proof transaction as is:
   // let tx = await signer.sendTransaction(bcTx)
   // await tx.wait()
+
+  // prove an account's code hash
+  // note: other account data fields can be proven by changing the |info| param
+  const aiTx = await relic.accountInfoProver.prove(
+      { block, account, info: InfoType.CodeHash }
+  )
+  // use the transaction data...
+  console.log(await provider.estimateGas(aiTx)
 
   // prove a storage slot's value, in this case WETH.balanceOf(account)
   const blockNum = 15000000
@@ -76,7 +84,7 @@ async function main() {
     block: 15000000,
     account: wethAddr,
   })
-  console.log(await signer.estimateGas(asTx))
+  console.log(await provider.estimateGas(asTx))
 
   // once the above transaction is confirmed, you can use cheap cached storage
   // slot proofs for that (account, block)
@@ -131,6 +139,29 @@ async function main() {
 
   // use the transaction data...
   console.log(await signer.estimateGas(logTx))
+
+  // prove the first withdrawal
+  const withdrawalTx = await relic.withdrawalProver.prove({
+    block: 17034871,
+    idx: 0,
+  })
+  // use the transaction data...
+  console.log(await signer.estimateGas(withdrawalTx))
+
+  // prove a transaction was included
+  const receipt = await provider.getTransactionReceipt(logs[0].transactionHash)
+  const txTx = await relic.transactionProver.prove(receipt)
+
+  // use the transaction data...
+  console.log(await signer.estimateGas(txTx))
+
+  // prove a beacon chain withdrawal occured
+  const withdrawalTx = await relic.withdrawalProver.prove(
+      { block: 17034871, idx: 0 } // first withdrawal in the first shapella block
+  )
+  // use the transaction data...
+  console.log(await signer.estimateGas(withdrawalTx))
+
 
   // demonstrate error handling
   try {

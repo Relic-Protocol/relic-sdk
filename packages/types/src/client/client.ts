@@ -3,15 +3,17 @@ import { ZeroExString } from './utils'
 export interface RelicAddresses {
   reliquary: ZeroExString
   ephemeralFacts: ZeroExString
+  accountInfoProver: ZeroExString
+  accountStorageProver: ZeroExString
   attendanceProver: ZeroExString
   birthCertificateProver: ZeroExString
-  storageSlotProver: ZeroExString
-  logProver: ZeroExString
   blockHeaderProver: ZeroExString
-  accountStorageProver: ZeroExString
-  cachedStorageSlotProver: ZeroExString
-  multiStorageSlotProver: ZeroExString
   cachedMultiStorageSlotProver: ZeroExString
+  cachedStorageSlotProver: ZeroExString
+  logProver: ZeroExString
+  multiStorageSlotProver: ZeroExString
+  storageSlotProver: ZeroExString
+  transactionProver: ZeroExString
   withdrawalProver: ZeroExString
 }
 

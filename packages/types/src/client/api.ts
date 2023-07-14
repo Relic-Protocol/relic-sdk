@@ -1,7 +1,19 @@
 import { BigNumberish } from 'ethers'
 import { ZeroExString } from './utils'
 
-export interface Proof {}
+
+export interface ErrorResult {
+  error: string
+}
+
+export interface Proof { }
+
+export interface AccountProof extends BaseAccountProof {
+  balance: BigNumberish
+  nonce: number
+  codeHash: ZeroExString
+  storageHash: ZeroExString
+}
 
 export interface AttendanceProof extends Proof {
   account: ZeroExString
@@ -11,28 +23,15 @@ export interface AttendanceProof extends Proof {
   signatureOuter: ZeroExString
 }
 
-export interface BlockProof extends Proof {
-  blockNum: number
-  header: ZeroExString
-  blockProof: ZeroExString
-}
-
 export interface BaseAccountProof extends BlockProof {
   account: ZeroExString
   accountProof: ZeroExString
 }
 
-export interface AccountProof extends BaseAccountProof {
-  balance: BigNumberish
-  nonce: number
-  codeHash: ZeroExString
-  storageHash: ZeroExString
-}
-
-export interface StorageSlotProof extends BaseAccountProof {
-  slot: BigNumberish
-  slotValue: BigNumberish
-  slotProof: ZeroExString
+export interface BlockProof extends Proof {
+  blockNum: number
+  header: ZeroExString
+  blockProof: ZeroExString
 }
 
 export interface LogProof extends BlockProof {
@@ -41,11 +40,19 @@ export interface LogProof extends BlockProof {
   receiptProof: ZeroExString
 }
 
+export interface StorageSlotProof extends BaseAccountProof {
+  slot: BigNumberish
+  slotValue: BigNumberish
+  slotProof: ZeroExString
+}
+
+export interface TransactionProof extends BlockProof {
+  txProof: ZeroExString
+  txIdx: number
+  txHash: BigNumberish
+}
+
 export interface WithdrawalProof extends BlockProof {
   idx: number
   withdrawalProof: ZeroExString
-}
-
-export interface ErrorResult {
-  error: string
 }

@@ -1,4 +1,5 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
+import { hexValue } from 'ethers/lib/utils'
 
 export class RelicError extends Error {
   constructor(message: string) {
@@ -33,6 +34,12 @@ export class SlotValueMismatch extends RelicError {
   }
 }
 
+export class TransactionHashMismatch extends RelicError {
+  constructor(value: BigNumberish, expected: BigNumberish) {
+    super(`tx hash didn't match expected: ${hexValue(value)} vs ${hexValue(expected)}`)
+  }
+}
+
 enum ErrorMsg {
   ACCOUNT_NOT_FOUND = 'Account info not available',
   INVALID_EVENTID = 'Invalid eventId',
@@ -43,6 +50,7 @@ enum ErrorMsg {
   BLOCKNUM_NOT_FOUND = 'Block number not available',
   BLOCK_NOT_FOUND = 'Block header not available',
   INVALID_ROOT = 'Invalid root number',
+  INVALID_ARG = 'Invalid argument',
   ROOT_NOT_FOUND = 'Root not found',
 }
 
@@ -104,6 +112,11 @@ export class RootNotFound extends RelicApiError {
     super('ROOT_NOT_FOUND')
   }
 }
+export class InvalidArgument extends RelicApiError {
+  constructor() {
+    super('INVALID_ARG')
+  }
+}
 
 const errorClassMap: { [m in Msg]: new () => RelicApiError } = {
   ACCOUNT_NOT_FOUND: AccountNotFound,
@@ -115,6 +128,7 @@ const errorClassMap: { [m in Msg]: new () => RelicApiError } = {
   BLOCKNUM_NOT_FOUND: BlockNumNotFound,
   BLOCK_NOT_FOUND: BlockNotFound,
   INVALID_ROOT: InvalidRoot,
+  INVALID_ARG: InvalidArgument,
   ROOT_NOT_FOUND: RootNotFound,
 }
 

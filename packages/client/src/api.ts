@@ -1,11 +1,12 @@
 import { API_ERROR_MAP, RelicError, UnknownError } from './errors'
 
 import type {
-  AttendanceProof,
   AccountProof,
+  AttendanceProof,
   BlockProof,
   LogProof,
   StorageSlotProof,
+  TransactionProof,
   WithdrawalProof,
   ErrorResult,
   RelicAddresses,
@@ -64,17 +65,10 @@ export class RelicAPI {
     })
   }
 
-  blockProof(block: ethers.providers.BlockTag): Promise<BlockProof> {
-    return this._fetch<BlockProof>({
+  addresses(chainId: number): Promise<RelicAddresses> {
+    return this._fetch<RelicAddresses>({
       method: 'get',
-      url: `/block/${block}`,
-    })
-  }
-
-  birthCertificateProof(address: string): Promise<AccountProof> {
-    return this._fetch<AccountProof>({
-      method: 'get',
-      url: `/birthcert/${ethers.utils.getAddress(address)}`,
+      url: `/addresses/${chainId}`,
     })
   }
 
@@ -94,16 +88,17 @@ export class RelicAPI {
     })
   }
 
-  storageSlotProof(
-    block: ethers.providers.BlockTag,
-    address: string,
-    slot: ethers.BigNumberish
-  ): Promise<StorageSlotProof> {
-    return this._fetch<StorageSlotProof>({
+  birthCertificateProof(address: string): Promise<AccountProof> {
+    return this._fetch<AccountProof>({
       method: 'get',
-      url: `/storage/${block}/${ethers.utils.getAddress(
-        address
-      )}/${ethers.utils.hexlify(slot)}`,
+      url: `/birthcert/${ethers.utils.getAddress(address)}`,
+    })
+  }
+
+  blockProof(block: ethers.providers.BlockTag): Promise<BlockProof> {
+    return this._fetch<BlockProof>({
+      method: 'get',
+      url: `/block/${block}`,
     })
   }
 
@@ -118,6 +113,29 @@ export class RelicAPI {
     })
   }
 
+  storageSlotProof(
+    block: ethers.providers.BlockTag,
+    address: string,
+    slot: ethers.BigNumberish
+  ): Promise<StorageSlotProof> {
+    return this._fetch<StorageSlotProof>({
+      method: 'get',
+      url: `/storage/${block}/${ethers.utils.getAddress(
+        address
+      )}/${ethers.utils.hexlify(slot)}`,
+    })
+  }
+
+  transactionProof(
+    block: ethers.providers.BlockTag,
+    txIdx: number
+  ): Promise<TransactionProof> {
+    return this._fetch<TransactionProof>({
+      method: 'get',
+      url: `/transaction/${block}/${txIdx}`
+    })
+  }
+
   withdrawalProof(
     block: ethers.providers.BlockTag,
     idx: number
@@ -128,10 +146,4 @@ export class RelicAPI {
     })
   }
 
-  addresses(chainId: number): Promise<RelicAddresses> {
-    return this._fetch<RelicAddresses>({
-      method: 'get',
-      url: `/addresses/${chainId}`,
-    })
-  }
 }
