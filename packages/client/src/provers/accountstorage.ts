@@ -18,10 +18,7 @@ export class AccountStorageProver extends EphemeralProverImpl<AccountStoragePara
   override async getProofData(
     params: AccountStorageParams
   ): Promise<ProofData> {
-    const proof = await this.client.api.accountProof(
-      params.block,
-      params.account
-    )
+    const proof = await this.api.accountProof(params.block, params.account)
 
     const proofData = ethersUtils.defaultAbiCoder.encode(
       ['address', 'bytes', 'bytes', 'bytes'],

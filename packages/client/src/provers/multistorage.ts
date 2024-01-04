@@ -23,10 +23,10 @@ export class MultiStorageSlotProver extends BatchProverImpl<MultiStorageSlotPara
     params: MultiStorageSlotParams
   ): Promise<BatchProofData> {
     const [accProof, proofs] = await Promise.all([
-      this.client.api.accountProof(params.block, params.account),
+      this.api.accountProof(params.block, params.account),
       Promise.all(
         params.slots.map((s) =>
-          this.client.api.storageSlotProof(params.block, params.account, s)
+          this.api.storageSlotProof(params.block, params.account, s)
         )
       ),
     ])

@@ -132,7 +132,7 @@ export class RelicAPI {
   ): Promise<TransactionProof> {
     return this._fetch<TransactionProof>({
       method: 'get',
-      url: `/transaction/${block}/${txIdx}`
+      url: `/transaction/${block}/${txIdx}`,
     })
   }
 
@@ -145,5 +145,4 @@ export class RelicAPI {
       url: `/withdrawal/${block}/${idx}`,
     })
   }
-
 }

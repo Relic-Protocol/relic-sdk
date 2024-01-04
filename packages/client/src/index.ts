@@ -2,6 +2,8 @@ export * from './api'
 export * from './client'
 export * from './reliquary'
 export * from './errors'
+export * from './bridges'
+export * from './blockhistory'
 
 export * from './provers'
 

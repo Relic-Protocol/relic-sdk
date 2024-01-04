@@ -13,7 +13,7 @@ export class TransactionProver extends EphemeralProverImpl<Params> {
   }
 
   override async getProofData(params: Params): Promise<ProofData> {
-    const proof = await this.client.api.transactionProof(
+    const proof = await this.api.transactionProof(
       params.blockHash,
       params.transactionIndex
     )

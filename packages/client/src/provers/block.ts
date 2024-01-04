@@ -15,7 +15,7 @@ export class BlockHeaderProver extends EphemeralProverImpl<BlockHeaderParams> {
   }
 
   override async getProofData(params: BlockHeaderParams): Promise<ProofData> {
-    const proof = await this.client.api.blockProof(params.block)
+    const proof = await this.api.blockProof(params.block)
 
     const proofData = ethersUtils.defaultAbiCoder.encode(
       ['bytes', 'bytes'],

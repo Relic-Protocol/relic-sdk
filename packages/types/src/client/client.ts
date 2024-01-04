@@ -2,6 +2,8 @@ import { ZeroExString } from './utils'
 
 export interface RelicAddresses {
   reliquary: ZeroExString
+  blockHistory: ZeroExString
+  messenger: ZeroExString
   ephemeralFacts: ZeroExString
   accountInfoProver: ZeroExString
   accountStorageProver: ZeroExString

@@ -2,9 +2,16 @@ import { ethers } from 'ethers'
 import { abi as proverAbi } from '@relicprotocol/contracts/abi/IProver.json'
 import { abi as batchProverAbi } from '@relicprotocol/contracts/abi/IBatchProver.json'
 import { abi as ephemeralFactsAbi } from '@relicprotocol/contracts/abi/IEphemeralFacts.json'
+import {
+  BlockProof,
+  Prover,
+  EphemeralProver,
+  RelicAddresses,
+} from '@relicprotocol/types'
 
 import type { RelicClient } from '../client'
-import { Prover, EphemeralProver, RelicAddresses } from '@relicprotocol/types'
+import { RelicAPI } from '../api'
+import { isL2ChainId, isProxyL2Deployment } from '../utils'
 
 export interface ReceiverContext {
   initiator: string
@@ -23,9 +30,37 @@ export type BatchProofData = {
   sigDatas: Array<string>
 }
 
+// wrap a RelicAPI with one that ensures blockProofs can be
+// validated on the target chain
+function wrapAPI(client: RelicClient): RelicAPI {
+  if (!isProxyL2Deployment(client.chainId, client.dataChainId)) {
+    return client.api
+  }
+
+  function isBlockProof(obj: any): obj is BlockProof {
+    return (obj.blockNum && obj.header && obj.blockProof) !== undefined
+  }
+
+  return new Proxy(client.api, {
+    get(target: RelicAPI, p: keyof RelicAPI) {
+      if (p.startsWith('_')) return target[p]
+      if (target[p] instanceof Function) {
+        return async (...args: any[]) => {
+          let result = await (target[p] as Function).call(target, ...args)
+          if (isBlockProof(result)) {
+            await client.blockHistory.ensureValidProof(result)
+          }
+          return result
+        }
+      }
+    },
+  })
+}
+
 export abstract class ProverImpl<Params> implements Prover {
   readonly client: RelicClient
   readonly contract: ethers.Contract
+  readonly api: RelicAPI
 
   constructor(client: RelicClient, key: keyof RelicAddresses) {
     this.client = client
@@ -34,6 +69,7 @@ export abstract class ProverImpl<Params> implements Prover {
       proverAbi,
       client.provider
     )
+    this.api = wrapAPI(client)
   }
 
   abstract getProofData(params: Params): Promise<ProofData>
@@ -93,6 +129,7 @@ export abstract class EphemeralProverImpl<Params>
 export abstract class BatchProverImpl<Params> implements Prover {
   readonly client: RelicClient
   readonly contract: ethers.Contract
+  readonly api: RelicAPI
 
   constructor(client: RelicClient, key: keyof RelicAddresses) {
     this.client = client
@@ -101,6 +138,7 @@ export abstract class BatchProverImpl<Params> implements Prover {
       batchProverAbi,
       client.provider
     )
+    this.api = wrapAPI(client)
   }
 
   abstract getProofData(params: Params): Promise<BatchProofData>

@@ -16,10 +16,7 @@ export class WithdrawalProver extends EphemeralProverImpl<WithdrawalParams> {
   }
 
   override async getProofData(params: WithdrawalParams): Promise<ProofData> {
-    const proof = await this.client.api.withdrawalProof(
-      params.block,
-      params.idx
-    )
+    const proof = await this.api.withdrawalProof(params.block, params.idx)
 
     const proofData = ethersUtils.defaultAbiCoder.encode(
       ['uint256', 'bytes', 'bytes', 'bytes'],

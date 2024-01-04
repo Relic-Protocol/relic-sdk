@@ -1,4 +1,4 @@
-import { ethers, utils as ethersUtils } from 'ethers'
+import { utils as ethersUtils } from 'ethers'
 import RLP from 'rlp'
 
 import { BatchProverImpl, BatchProofData } from './prover'
@@ -22,10 +22,10 @@ export class CachedMultiStorageSlotProver extends BatchProverImpl<MultiStorageSl
     }
 
     const [accProof, proofs] = await Promise.all([
-      this.client.api.accountProof(params.block, params.account),
+      this.api.accountProof(params.block, params.account),
       Promise.all(
         params.slots.map((s) =>
-          this.client.api.storageSlotProof(params.block, params.account, s)
+          this.api.storageSlotProof(params.block, params.account, s)
         )
       ),
     ])

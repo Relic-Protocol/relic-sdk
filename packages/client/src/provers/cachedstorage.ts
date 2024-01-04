@@ -1,4 +1,4 @@
-import { ethers, utils as ethersUtils } from 'ethers'
+import { utils as ethersUtils } from 'ethers'
 
 import { EphemeralProverImpl, ProofData } from './prover'
 import { RelicClient } from '../client'
@@ -12,16 +12,13 @@ export class CachedStorageSlotProver extends EphemeralProverImpl<StorageSlotPara
   }
 
   override async getProofData(params: StorageSlotParams): Promise<ProofData> {
-    const ssProof = await this.client.api.storageSlotProof(
+    const ssProof = await this.api.storageSlotProof(
       params.block,
       params.account,
       params.slot
     )
 
-    const accProof = await this.client.api.accountProof(
-      params.block,
-      params.account
-    )
+    const accProof = await this.api.accountProof(params.block, params.account)
 
     if (typeof params.expected !== 'undefined') {
       utils.assertSlotValue(ssProof.slotValue, params.expected)

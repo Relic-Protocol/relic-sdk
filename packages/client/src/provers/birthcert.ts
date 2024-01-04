@@ -17,7 +17,7 @@ export class BirthCertificateProver extends EphemeralProverImpl<BirthCertificate
   override async getProofData(
     params: BirthCertificateParams
   ): Promise<ProofData> {
-    const proof = await this.client.api.birthCertificateProof(params.account)
+    const proof = await this.api.birthCertificateProof(params.account)
 
     const proofData = ethersUtils.defaultAbiCoder.encode(
       ['address', 'bytes', 'bytes', 'bytes'],

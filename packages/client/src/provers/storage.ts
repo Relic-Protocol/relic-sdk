@@ -18,7 +18,7 @@ export class StorageSlotProver extends EphemeralProverImpl<StorageSlotParams> {
   }
 
   override async getProofData(params: StorageSlotParams): Promise<ProofData> {
-    const proof = await this.client.api.storageSlotProof(
+    const proof = await this.api.storageSlotProof(
       params.block,
       params.account,
       params.slot

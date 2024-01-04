@@ -3,7 +3,7 @@ import { SlotValueMismatch } from '../errors'
 
 const abiCoder = utils.defaultAbiCoder
 
-function toBytes32(num: BigNumberish): string {
+export function toBytes32(num: BigNumberish): string {
   return abiCoder.encode(['uint256'], [BigNumber.from(num)])
 }
 

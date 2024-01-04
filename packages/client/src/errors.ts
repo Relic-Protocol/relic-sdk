@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish, ethers } from 'ethers'
 import { hexValue } from 'ethers/lib/utils'
 
 export class RelicError extends Error {
@@ -21,22 +21,83 @@ export class UnsupportedNetwork extends RelicError {
 }
 
 export class InvalidDataProvider extends RelicError {
-  constructor(executionChainId: number, dataChainId: number) {
+  constructor(executionChainId: number, dataChainIds: Array<string>) {
     super(
-      `network ${executionChainId} requires a dataProvider for network ${dataChainId}`
+      `network ${executionChainId} requires a dataProvider for one ` +
+        `of the following networks: ${dataChainIds}`
     )
   }
 }
 
 export class SlotValueMismatch extends RelicError {
   constructor(value: BigNumber, expected: BigNumber) {
-    super(`slot value didn't match expected: ${value} vs ${expected}`)
+    super(
+      `slot value didn't match expected: ${value.toHexString()} vs ${expected.toHexString()}`
+    )
   }
 }
 
 export class TransactionHashMismatch extends RelicError {
   constructor(value: BigNumberish, expected: BigNumberish) {
-    super(`tx hash didn't match expected: ${hexValue(value)} vs ${hexValue(expected)}`)
+    super(
+      `tx hash didn't match expected: ${hexValue(value)} vs ${hexValue(
+        expected
+      )}`
+    )
+  }
+}
+
+export class NoBridger extends RelicError {
+  constructor(chainId: number, dataChainId: number) {
+    super(
+      `network ${chainId} with data network ${dataChainId} does not have a bridger`
+    )
+  }
+}
+
+export class NotNativeL2 extends RelicError {
+  constructor(chainId: number, dataChainId: number) {
+    super(
+      `network ${chainId} with data network ${dataChainId} is not a native L2 config`
+    )
+  }
+}
+
+export class NotL1Network extends RelicError {
+  constructor(chainId: number) {
+    super(`${chainId} is not an L1 network`)
+  }
+}
+
+export class UnsupportedProvider extends RelicError {
+  constructor(provider: ethers.providers.Provider) {
+    const providerType = typeof provider
+    super(`provider type ${providerType} is not supported`)
+  }
+}
+
+export class BridgeNotNecessary extends RelicError {
+  constructor(block: ethers.providers.BlockTag) {
+    super(
+      `block ${block} does not need to be bridged; it can already be verified. ` +
+        `call this function with force=true to override this check`
+    )
+  }
+}
+
+export class BlockNotVerifiable extends RelicError {
+  constructor(block: ethers.providers.BlockTag, chainId: number) {
+    super(
+      `block ${block} is not verifiable on chainId ${chainId}. ` +
+        `you may need to wait for a merkle root import, or bridge ` +
+        `the block hash manually using RelicClient.bridge.sendBlock`
+    )
+  }
+}
+
+export class TimestampAfterCurrent extends RelicError {
+  constructor(timestamp: number) {
+    super(`timestamp ${timestamp} is after current block's timestamp`)
   }
 }
 
