@@ -20,7 +20,7 @@ import {
 } from './provers'
 
 import { Reliquary } from './reliquary'
-import { BlockHistory } from './blockhistory'
+import { IBlockHistory, BlockHistory, BeaconBlockHistory } from './blockhistory'
 import { Bridge, OptimismBridge, ZkSyncBridge } from './bridges'
 import {
   ChainId,
@@ -121,8 +121,12 @@ export class RelicClient {
   }
 
   @Memoize()
-  get blockHistory(): BlockHistory {
-    return new BlockHistory(this)
+  get blockHistory(): IBlockHistory {
+    if (this.addresses.legacyBlockHistory) {
+      return new BeaconBlockHistory(this)
+    } else {
+      return new BlockHistory(this)
+    }
   }
 
   @Memoize()

@@ -13,11 +13,11 @@ export class OptimismBridge extends Bridge {
     blockNum: ethers.BigNumberish,
     blockHash: string
   ): Promise<MessengerParams> {
-    const call =
-      await this.proxyBlockHistory.populateTransaction.importTrustedHash(
-        blockNum,
-        blockHash
-      )
+    const contract = this.client.blockHistory.getContract()
+    const call = await contract.populateTransaction.importTrustedHash(
+      blockNum,
+      blockHash
+    )
     const l2GasLimit = await this.client.provider.estimateGas({
       ...call,
       from: zksyncUtils.applyL1ToL2Alias(this.messenger.address),

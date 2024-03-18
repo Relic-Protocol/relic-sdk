@@ -4,19 +4,34 @@ import { BlockProof } from '@relicprotocol/types'
 import { abi as mainAbi } from '@relicprotocol/contracts/abi/IBlockHistory.json'
 import { abi as proxyAbi } from '@relicprotocol/contracts/abi/IProxyBlockHistory.json'
 import { abi as opNativeAbi } from '@relicprotocol/contracts/abi/IOptimismNativeBlockHistory.json'
+import { abi as beaconAbi } from '@relicprotocol/contracts/abi/IBeaconBlockHistory.json'
+import { abi as proxyBeaconAbi } from '@relicprotocol/contracts/abi/IProxyBeaconBlockHistory.json'
 import { RelicClient } from './client'
 import {
+  blockForTimestamp,
   blockNumberToChunk,
   getLogs,
   getOutputRootProof,
   hashOutputRootProof,
+  isL1ChainId,
   isL2ChainId,
+  isOptimismChainId,
   isProxyL2Deployment,
+  slotToTimestamp,
+  timestampToSlot,
   toBytes32,
 } from './utils'
-import { BlockNotVerifiable, NotL1Network, NotNativeL2 } from './errors'
+import {
+  BlockNotVerifiable,
+  L1BlockHashNotAccessible,
+  NotL1Network,
+  NotNativeL2,
+} from './errors'
 
 const TRUSTED_HASH_PROOF = '0x01'
+const PRECOMITTED_BLOCK_PROOF = '0x02'
+
+const SLOTS_PER_HISTORICAL_ROOT = 8192
 
 function getAbi(chainId: number, dataChainId: number): any {
   if (isProxyL2Deployment(chainId, dataChainId)) {
@@ -28,13 +43,33 @@ function getAbi(chainId: number, dataChainId: number): any {
   }
 }
 
+function getBeaconAbi(chainId: number, dataChainId: number): any {
+  if (isProxyL2Deployment(chainId, dataChainId)) {
+    return proxyBeaconAbi
+  } else {
+    return beaconAbi
+  }
+}
+
 const NEGATIVE_ONE = ethers.BigNumber.from(-1)
 
 function max(vals: Array<ethers.BigNumber>) {
   return vals.reduce((l, r) => (l.gt(r) ? l : r))
 }
 
-export class BlockHistory {
+export interface IBlockHistory {
+  getContract(): ethers.Contract
+  getLastVerifiableBlock(): Promise<ethers.BigNumber>
+  ensureValidProof(proof: BlockProof): Promise<void>
+  canVerifyBlock(block: ethers.providers.BlockTag): Promise<boolean>
+  waitUntilVerifiable(block: ethers.providers.BlockTag): Promise<void>
+  commitRecent(
+    blockNum: ethers.BigNumberish
+  ): Promise<ethers.PopulatedTransaction>
+  commitCurrentL1BlockHash(): Promise<ethers.PopulatedTransaction>
+}
+
+export class BlockHistory implements IBlockHistory {
   private client: RelicClient
   private contract: ethers.Contract
   private merkleRootCache: Record<number, string>
@@ -44,12 +79,16 @@ export class BlockHistory {
     this.client = client
     const abi = getAbi(client.chainId, client.dataChainId)
     this.contract = new ethers.Contract(
-      client.addresses.blockHistory,
+      client.addresses.legacyBlockHistory || client.addresses.blockHistory,
       abi,
       client.provider
     )
     this.merkleRootCache = {}
     this.trustedCache = {}
+  }
+
+  getContract(): ethers.Contract {
+    return this.contract
   }
 
   async merkleRootForBlock(blockNum: number): Promise<string | null> {
@@ -59,7 +98,7 @@ export class BlockHistory {
       return root
     }
     const filter = this.contract.filters.ImportMerkleRoot(chunk)
-    const logs = await this.contract.provider.getLogs({
+    const logs = await getLogs(this.contract.provider, {
       ...filter,
       fromBlock: blockNum,
     })
@@ -78,12 +117,11 @@ export class BlockHistory {
     if (this.trustedCache[blockNum] == toBytes32(blockHash)) {
       return true
     }
-    const trusted = await this.contract.validBlockHash(
-      blockHash,
-      blockNum,
-      TRUSTED_HASH_PROOF,
-      { from: this.client.addresses.reliquary }
-    )
+    const trusted = await this.contract
+      .validBlockHash(blockHash, blockNum, TRUSTED_HASH_PROOF, {
+        from: this.client.addresses.reliquary,
+      })
+      .catch(() => false)
     if (trusted) {
       this.trustedCache[blockNum] = toBytes32(blockHash)
     }
@@ -289,5 +327,243 @@ export class BlockHistory {
       block,
       l2OutputRootProof
     )
+  }
+
+  async waitUntilVerifiable(block: ethers.providers.BlockTag): Promise<void> {
+    const header = await this.client.dataProvider.getBlock(block)
+    const filter = this.contract.filters.TrustedBlockHash()
+    const fromBlock = await blockForTimestamp(
+      this.client.provider,
+      header.timestamp
+    ).then((b) => b.number)
+    const isTargetHash = (hash: string) => {
+      return hash == header.hash
+    }
+    return new Promise(async (res) => {
+      const listener = (_: ethers.BigNumber, blockHash: string) => {
+        if (isTargetHash(blockHash)) {
+          this.contract.off(filter, listener)
+          res()
+        }
+      }
+      this.contract.on(filter, listener)
+
+      // query if verifiable after setting up listeners (to avoid races)
+      if (await this.canVerifyBlock(block)) {
+        this.contract.off(filter, listener)
+        res()
+      }
+    })
+  }
+
+  async commitCurrentL1BlockHash(): Promise<ethers.PopulatedTransaction> {
+    if (
+      !isOptimismChainId(this.client.chainId) ||
+      !isL1ChainId(this.client.dataChainId)
+    ) {
+      throw new L1BlockHashNotAccessible(this.client.chainId)
+    }
+    return this.contract.populateTransaction.commitCurrentL1BlockHash()
+  }
+}
+
+export class BeaconBlockHistory implements IBlockHistory {
+  private client: RelicClient
+  private preDencunBlockHistory: BlockHistory
+  private contract: ethers.Contract
+  private merkleRootCache: Record<number, string>
+  private precomittedCache: Record<number, string>
+
+  constructor(client: RelicClient) {
+    this.client = client
+    this.preDencunBlockHistory = new BlockHistory(client)
+    this.contract = new ethers.Contract(
+      client.addresses.blockHistory,
+      getBeaconAbi(this.client.chainId, this.client.dataChainId),
+      client.provider
+    )
+    this.merkleRootCache = {}
+    this.precomittedCache = {}
+  }
+
+  getContract(): ethers.Contract {
+    return this.contract
+  }
+
+  async summarySlotForBlock(
+    block: ethers.providers.Block
+  ): Promise<number | null> {
+    const slot = timestampToSlot(block.timestamp, this.client.dataChainId)
+    const summarySlot = slot + 8192 - (slot % SLOTS_PER_HISTORICAL_ROOT)
+    const filter = this.contract.filters.ImportBlockSummary(summarySlot)
+    const { number: fromBlock } = await blockForTimestamp(
+      this.client.provider,
+      block.timestamp
+    )
+    const logs = await getLogs(this.contract.provider, {
+      ...filter,
+      fromBlock,
+    })
+    if (logs.length == 0) {
+      return null
+    }
+    return summarySlot
+  }
+
+  async isPrecomitted(blockNum: number, blockHash: string): Promise<boolean> {
+    if (!this.contract.filters.PrecomittedBlock) {
+      return false
+    }
+    if (this.precomittedCache[blockNum] == toBytes32(blockHash)) {
+      return true
+    }
+    const precomitted = await this.contract
+      .validBlockHash(blockHash, blockNum, PRECOMITTED_BLOCK_PROOF, {
+        from: this.client.addresses.reliquary,
+      })
+      .catch(() => false)
+    if (precomitted) {
+      this.precomittedCache[blockNum] = toBytes32(blockHash)
+    }
+    return precomitted
+  }
+
+  async canVerifyBlock(block: ethers.providers.BlockTag): Promise<boolean> {
+    const header = await this.client.dataProvider.getBlock(block)
+    const [root, precomitted] = await Promise.all([
+      this.summarySlotForBlock(header),
+      this.isPrecomitted(header.number, header.hash),
+    ])
+    return root != null || precomitted
+  }
+
+  async validBlockHash(
+    hash: string,
+    number: ethers.BigNumberish,
+    proof: string
+  ): Promise<boolean> {
+    return this.contract.validBlockHash(hash, number, proof)
+  }
+
+  async ensureValidProof(proof: BlockProof): Promise<void> {
+    let number = proof.blockNum
+    let hash = ethers.utils.keccak256(proof.header)
+
+    if (number < (await this.contract.UPGRADE_BLOCK())) {
+      return this.preDencunBlockHistory.ensureValidProof(proof)
+    }
+
+    // if the block is a known precommitted hash, replace the proof
+    if (await this.isPrecomitted(number, hash)) {
+      proof.blockProof = PRECOMITTED_BLOCK_PROOF
+      return
+    }
+
+    // otherwise ensure the provided proof verifies
+    const valid = await this.contract
+      .validBlockHash(hash, number, proof.blockProof, {
+        from: this.client.addresses.reliquary,
+      })
+      .catch(() => false)
+    if (valid) {
+      return
+    }
+
+    // otherwise, the proof is not verifiable
+    throw new BlockNotVerifiable(number, this.client.chainId)
+  }
+
+  async getLastSummaryBlock() {
+    if (!this.contract.filters.ImportBlockSummary) {
+      return NEGATIVE_ONE
+    }
+    const logs = await getLogs(
+      this.contract.provider,
+      this.contract.filters.ImportBlockSummary()
+    )
+    if (logs.length == 0) {
+      return NEGATIVE_ONE
+    }
+    const vals = logs.map((l) => {
+      const slot = ethers.BigNumber.from(logs[logs.length - 1].topics[1])
+      return slot.sub(1)
+    })
+    const maxSlot = max(vals)
+    const maxTimestamp = slotToTimestamp(
+      maxSlot.toNumber(),
+      this.client.dataChainId
+    )
+    const maxBlock = await blockForTimestamp(
+      this.client.dataProvider,
+      maxTimestamp
+    )
+    return ethers.BigNumber.from(maxBlock.number)
+  }
+
+  async getLastPrecomiitedBlock() {
+    if (!this.contract.filters.PrecomittedBlock) {
+      return NEGATIVE_ONE
+    }
+    const logs = await getLogs(
+      this.contract.provider,
+      this.contract.filters.PrecomittedBlock()
+    )
+    if (logs.length == 0) {
+      return NEGATIVE_ONE
+    }
+    const vals = logs.map((l) => {
+      return ethers.BigNumber.from(logs[logs.length - 1].topics[1])
+    })
+    return max(vals)
+  }
+
+  async getLastVerifiableBlock() {
+    const vals = await Promise.all([
+      this.preDencunBlockHistory.getLastVerifiableBlock(),
+      this.getLastSummaryBlock(),
+      this.getLastPrecomiitedBlock(),
+    ])
+    // return the max
+    return max(vals)
+  }
+
+  async commitRecent(
+    blockNum: ethers.BigNumberish
+  ): Promise<ethers.PopulatedTransaction> {
+    if (
+      this.client.chainId != this.client.dataChainId ||
+      isL2ChainId(this.client.chainId)
+    ) {
+      throw new NotL1Network(this.client.dataChainId)
+    }
+    return this.contract.populateTransaction.commitRecent(blockNum)
+  }
+
+  async waitUntilVerifiable(block: ethers.providers.BlockTag): Promise<void> {
+    const header = await this.client.dataProvider.getBlock(block)
+    const filter = this.contract.filters.PrecomittedBlock(header.number)
+    return new Promise(async (res) => {
+      const listener = () => {
+        this.contract.off(filter, listener)
+        res()
+      }
+      this.contract.on(filter, listener)
+
+      // query if verifiable after setting up listeners (to avoid races)
+      if (await this.canVerifyBlock(block)) {
+        this.contract.off(filter, listener)
+        res()
+      }
+    })
+  }
+
+  async commitCurrentL1BlockHash(): Promise<ethers.PopulatedTransaction> {
+    if (
+      !isOptimismChainId(this.client.chainId) ||
+      !isL1ChainId(this.client.dataChainId)
+    ) {
+      throw new L1BlockHashNotAccessible(this.client.chainId)
+    }
+    return this.contract.populateTransaction.commitCurrentL1BlockHash()
   }
 }

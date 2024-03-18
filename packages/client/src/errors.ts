@@ -55,6 +55,12 @@ export class NoBridger extends RelicError {
   }
 }
 
+export class L1BlockHashNotAccessible extends RelicError {
+  constructor(chainId: number) {
+    super(`network ${chainId} doesn't expose L1 block hash`)
+  }
+}
+
 export class NotNativeL2 extends RelicError {
   constructor(chainId: number, dataChainId: number) {
     super(
@@ -98,6 +104,12 @@ export class BlockNotVerifiable extends RelicError {
 export class TimestampAfterCurrent extends RelicError {
   constructor(timestamp: number) {
     super(`timestamp ${timestamp} is after current block's timestamp`)
+  }
+}
+
+export class UnexpectedSlotTime extends RelicError {
+  constructor(timestamp: number) {
+    super(`block timestamp ${timestamp} is unexpected`)
   }
 }
 

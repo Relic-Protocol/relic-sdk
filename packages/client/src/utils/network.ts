@@ -1,5 +1,9 @@
 import { providers, utils } from 'ethers'
-import { UnsupportedProvider } from '../errors'
+import {
+  NotL1Network,
+  UnexpectedSlotTime,
+  UnsupportedProvider,
+} from '../errors'
 
 export enum ChainId {
   EthMainnet = 1,
@@ -11,6 +15,13 @@ export enum ChainId {
   BaseMainnet = 8453,
   BaseSepolia = 84532,
 }
+
+const BEACON_GENESIS_TIMESTAMP: Record<number, number> = {
+  [ChainId.EthMainnet]: 1606824023,
+  [ChainId.EthSepolia]: 1655733600,
+}
+
+const TIME_PER_SLOT = 12
 
 export function isL1ChainId(chainId: number) {
   return chainId == ChainId.EthMainnet || chainId == ChainId.EthSepolia
@@ -35,6 +46,31 @@ export function isL2ChainId(chainId: number) {
 
 export function isProxyL2Deployment(chainId: number, dataChainId: number) {
   return isL2ChainId(chainId) && isL1ChainId(dataChainId)
+}
+
+export function beaconGenesisTimestamp(chainId: number): number {
+  if (!isL1ChainId(chainId)) {
+    throw new NotL1Network(chainId)
+  }
+  return BEACON_GENESIS_TIMESTAMP[chainId]
+}
+
+export function timestampToSlot(timestamp: number, chainId: number): number {
+  if (!isL1ChainId(chainId)) {
+    throw new NotL1Network(chainId)
+  }
+  const timeDiff = timestamp - BEACON_GENESIS_TIMESTAMP[chainId]
+  if (timeDiff % TIME_PER_SLOT != 0) {
+    throw new UnexpectedSlotTime(timestamp)
+  }
+  return timeDiff / TIME_PER_SLOT
+}
+
+export function slotToTimestamp(slot: number, chainId: number): number {
+  if (!isL1ChainId(chainId)) {
+    throw new NotL1Network(chainId)
+  }
+  return BEACON_GENESIS_TIMESTAMP[chainId] + TIME_PER_SLOT * slot
 }
 
 export function getConnectionInfo(

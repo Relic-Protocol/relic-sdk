@@ -34,6 +34,7 @@ function makeError(
 
 export class RelicAPI {
   private instance: AxiosInstance
+  private baseBlock: number | undefined
 
   constructor(apiUrl: string) {
     this.instance = axios.create({ baseURL: apiUrl })
@@ -47,12 +48,22 @@ export class RelicAPI {
   }
 
   private _fetch<R>(req: AxiosRequestConfig): Promise<R> {
+    if (this.baseBlock !== undefined) {
+      req.params = {
+        ...(req.params || {}),
+        baseBlock: this.baseBlock.toString(),
+      }
+    }
     return this.instance
       .request(req)
       .then(({ data }: AxiosResponse<R>) => data)
       .catch((error: AxiosError<ErrorResult>) => {
         throw makeError(error.response)
       })
+  }
+
+  setBaseBlock(baseBlock: number) {
+    this.baseBlock = baseBlock
   }
 
   accountProof(

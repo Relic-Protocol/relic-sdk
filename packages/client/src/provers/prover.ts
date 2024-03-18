@@ -11,7 +11,7 @@ import {
 
 import type { RelicClient } from '../client'
 import { RelicAPI } from '../api'
-import { isL2ChainId, isProxyL2Deployment } from '../utils'
+import { isProxyL2Deployment } from '../utils'
 
 export interface ReceiverContext {
   initiator: string
@@ -46,6 +46,9 @@ function wrapAPI(client: RelicClient): RelicAPI {
       if (p.startsWith('_')) return target[p]
       if (target[p] instanceof Function) {
         return async (...args: any[]) => {
+          const lastVerifiable =
+            await client.blockHistory.getLastVerifiableBlock()
+          target.setBaseBlock(lastVerifiable.toNumber())
           let result = await (target[p] as Function).call(target, ...args)
           if (isBlockProof(result)) {
             await client.blockHistory.ensureValidProof(result)

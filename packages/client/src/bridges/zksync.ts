@@ -21,11 +21,11 @@ export class ZkSyncBridge extends Bridge {
     blockNum: ethers.BigNumberish,
     blockHash: string
   ): Promise<MessengerParams> {
-    const call =
-      await this.proxyBlockHistory.populateTransaction.importTrustedHash(
-        blockNum,
-        blockHash
-      )
+    const contract = this.client.blockHistory.getContract()
+    const call = await contract.populateTransaction.importTrustedHash(
+      blockNum,
+      blockHash
+    )
     const request = {
       contractAddress: call.to!,
       calldata: call.data!,
